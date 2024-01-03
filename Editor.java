@@ -1,167 +1,139 @@
-//import java.awt.*;
-import javax.swing.*;
-import java.io.*;
 import java.awt.event.*;
+import java.io.*;
+import javax.swing.*;
 import javax.swing.plaf.metal.*;
-//import javax.swing.text.*;
+
 class Editor extends JFrame implements ActionListener {
-	JTextArea t;
-	JFrame f;
-	Editor(){
-		f = new JFrame("Editor");
+    JTextArea t;
+    JFrame f;
 
-		try {
-			UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
-			MetalLookAndFeel.setCurrentTheme(new OceanTheme());
-		}
-		catch (Exception e) { System.out.println("erro");}
+    Editor() {
+        f = new JFrame("Editor");
+        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		t = new JTextArea();
+        try {
+            UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+            MetalLookAndFeel.setCurrentTheme(new OceanTheme());
+        } catch (Exception e) {
+            System.out.println("Error");
+        }
 
-		JMenuBar mb = new JMenuBar();
+        t = new JTextArea();
 
-		JMenu m1 = new JMenu("File");
+        JMenuBar mb = new JMenuBar();
 
-		JMenuItem mi1 = new JMenuItem("New");
-		JMenuItem mi2 = new JMenuItem("Open");
-		JMenuItem mi3 = new JMenuItem("Save");
-		JMenuItem mi9 = new JMenuItem("Print");
+        JMenu m1 = new JMenu("File");
 
-		mi1.addActionListener(this);
-		mi2.addActionListener(this);
-		mi3.addActionListener(this);
-		mi9.addActionListener(this);
+        JMenuItem mi1 = new JMenuItem("New");
+        JMenuItem mi2 = new JMenuItem("Open");
+        JMenuItem mi3 = new JMenuItem("Save");
+        JMenuItem mi9 = new JMenuItem("Print");
 
-		m1.add(mi1);
-		m1.add(mi2);
-		m1.add(mi3);
-		m1.add(mi9);
+        mi1.addActionListener(this);
+        mi2.addActionListener(this);
+        mi3.addActionListener(this);
+        mi9.addActionListener(this);
 
-		JMenu m2 = new JMenu("Edit");
+        m1.add(mi1);
+        m1.add(mi2);
+        m1.add(mi3);
+        m1.add(mi9);
 
-		JMenuItem mi4 = new JMenuItem("cut");
-		JMenuItem mi5 = new JMenuItem("copy");
-		JMenuItem mi6 = new JMenuItem("paste");
+        JMenu m2 = new JMenu("Edit");
 
-		mi4.addActionListener(this);
-		mi5.addActionListener(this);
-		mi6.addActionListener(this);
+        JMenuItem mi4 = new JMenuItem("cut");
+        JMenuItem mi5 = new JMenuItem("copy");
+        JMenuItem mi6 = new JMenuItem("paste");
 
-		m2.add(mi4);
-		m2.add(mi5);
-		m2.add(mi6);
+        mi4.addActionListener(this);
+        mi5.addActionListener(this);
+        mi6.addActionListener(this);
 
-		JMenuItem mc = new JMenuItem("close");
+        m2.add(mi4);
+        m2.add(mi5);
+        m2.add(mi6);
 
-		mc.addActionListener(this);
+        JMenuItem mc = new JMenuItem("close");
 
-		mb.add(m1);
-		mb.add(m2);
-		mb.add(mc);
+        mc.addActionListener(this);
 
-		f.setJMenuBar(mb);
-		f.add(t);
-		f.setSize(500, 500);
-		f.setVisible(true);
-	}
+        mb.add(m1);
+        mb.add(m2);
+        mb.add(mc);
 
-	public void actionPerformed(ActionEvent e)
-	{
-		String s = e.getActionCommand();
+        f.setJMenuBar(mb);
+        f.add(new JScrollPane(t));
+        f.setSize(500, 500);
+        f.setVisible(true);
+    }
 
-		if (s.equals("cut")) {
-			t.cut();
-		}
-		else if (s.equals("copy")) {
-			t.copy();
-		}
-		else if (s.equals("paste")) {
-			t.paste();
-		}
-		else if (s.equals("Save")) {
-			JFileChooser j = new JFileChooser("f:");
 
-			int r = j.showSaveDialog(null);
+    public void actionPerformed(ActionEvent e) {
+        String s = e.getActionCommand();
 
-			if (r == JFileChooser.APPROVE_OPTION) {
+        if (s.equals("cut")) {
+            t.cut();
+        } else if (s.equals("copy")) {
+            t.copy();
+        } else if (s.equals("paste")) {
+            t.paste();
+        } else if (s.equals("Save")) {
+            JFileChooser j = new JFileChooser("f:");
+            int r = j.showSaveDialog(null);
 
-				// Set the label to the path of the selected directory
-				File fi = new File(j.getSelectedFile().getAbsolutePath());
+            if (r == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = j.getSelectedFile();
+                if (!selectedFile.getName().toLowerCase().endsWith(".txt")) {
+                    selectedFile = new File(selectedFile.getAbsolutePath() + ".txt");
+                }
 
-				try {
-					// Create a file writer
-					FileWriter wr = new FileWriter(fi, false);
+                try (FileWriter wr = new FileWriter(selectedFile, false);
+                     BufferedWriter w = new BufferedWriter(wr)) {
+                    w.write(t.getText());
 
-					// Create buffered writer to write
-					BufferedWriter w = new BufferedWriter(wr);
+                } catch (Exception evt) {
+                    JOptionPane.showMessageDialog(f, evt.getMessage());
+                }
+            } else if (r == JFileChooser.CANCEL_OPTION) {
+                JOptionPane.showMessageDialog(f, "O usuário cancelou a operação");
+            }
+        } else if (s.equals("Print")) {
+            try {
+                t.print();
+            } catch (Exception evt) {
+                JOptionPane.showMessageDialog(f, evt.getMessage());
+            }
+        } else if (s.equals("Open")) {
+            JFileChooser j = new JFileChooser("f:");
 
-					// Write
-					w.write(t.getText());
+            int r = j.showOpenDialog(null);
 
-					w.flush();
-					w.close();
-				}
-				catch (Exception evt) {
-					JOptionPane.showMessageDialog(f, evt.getMessage());
-				}
-			}
-			// If the user cancelled the operation
-			else
-				JOptionPane.showMessageDialog(f, "the user cancelled the operation");
-		}
-		else if (s.equals("Print")) {
-			try {
-				t.print();
-			}
-			catch (Exception evt) {
-				JOptionPane.showMessageDialog(f, evt.getMessage());
-			}
-		}
-		else if (s.equals("Open")) {
-			JFileChooser j = new JFileChooser("f:");
+            if (r == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = j.getSelectedFile();
 
-			int r = j.showOpenDialog(null);
+                try (FileReader fr = new FileReader(selectedFile);
+                     BufferedReader br = new BufferedReader(fr)) {
 
-			// If the user selects a file
-			if (r == JFileChooser.APPROVE_OPTION) {
-				// Set the label to the path of the selected directory
-				File fi = new File(j.getSelectedFile().getAbsolutePath());
+                    String s1, sl;
 
-				try {
-					// String
-					String s1 = "", sl = "";
+                    sl = br.readLine();
 
-					// File reader
-					FileReader fr = new FileReader(fi);
+                    while ((s1 = br.readLine()) != null) {
+                        sl = sl + "\n" + s1;
+                    }
 
-					// Buffered reader
-					BufferedReader br = new BufferedReader(fr);
-
-					// Initialize sl
-					sl = br.readLine();
-
-					// Take the input from the file
-					while ((s1 = br.readLine()) != null) {
-						sl = sl + "\n" + s1;
-					}
-
-					// Set the text
-					t.setText(sl);
-				}
-				catch (Exception evt) {
-					JOptionPane.showMessageDialog(f, evt.getMessage());
-				}
-			}
-			// If the user cancelled the operation
-			else
-				JOptionPane.showMessageDialog(f, "O usuário cancelou a operação");
-		}
-		else if (s.equals("New")) {
-			t.setText("");
-		}
-		else if (s.equals("close")) {
-			f.setVisible(false);
-		}
-	}
+                    t.setText(sl);
+                } catch (Exception evt) {
+                    JOptionPane.showMessageDialog(f, evt.getMessage());
+                }
+            } else if (r == JFileChooser.CANCEL_OPTION) {
+                JOptionPane.showMessageDialog(f, "O usuário cancelou a operação");
+            }
+        } else if (s.equals("New")) {
+            t.setText("");
+        } else if (s.equals("close")) {
+            f.setVisible(false);
+        }
+    }
 
 }
